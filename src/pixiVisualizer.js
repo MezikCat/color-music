@@ -1,11 +1,9 @@
 //import * as PIXI from 'pixi.js';
-import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@7.3.3/dist/pixi.min.js';
+//import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@7.3.3/dist/pixi.min.js';
+
 import { getAnalyser } from './audioManager.js';
 import { PROFILES } from './frequencyProfiles.js';
 import { AdaptiveSensitivity } from './adaptiveSensitivity.js';
-
-// Делаем PIXI глобально доступным
-window.PIXI = PIXI;
 
 let app; // Приложение PIXI
 let spotlights = []; // массив прожекторов
@@ -15,14 +13,24 @@ let adaptiveProcessor; // Процессор для управления ада�
 // Флаг управления адаптивной чувствительностью
 let useAdaptiveSensitivity = false;
 
-export function initPixiVisualizer() {
+export async function initPixiVisualizer() {
     console.log('Инициализация PixiJS визуализатора...');
-    console.log('📦 PixiJS version:', PIXI.VERSION);
-
-    // Останавливаем предыдущую визуализацию
-    stopPixiVisualizer();
+    //console.log('📦 PixiJS version:', PIXI.VERSION);
 
     try {
+        // Динамический импорт PixiJS
+        const PIXI = await import(
+            'https://cdn.jsdelivr.net/npm/pixi.js@7.x/dist/pixi.min.js'
+        );
+        // Делаем PIXI глобально доступным
+        window.PIXI = PIXI;
+
+        console.log('PIXI loaded:', PIXI);
+        //console.log('Application constructor:', PIXI.Application);
+
+        // Останавливаем предыдущую визуализацию
+        stopPixiVisualizer();
+
         // Создаем отдельный canvas для PixiJS
         const pixiCanvas = document.createElement('canvas');
         pixiCanvas.width = window.innerWidth;
