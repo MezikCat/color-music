@@ -51,25 +51,75 @@ window.addEventListener('resize', setupCanvas);
 setupCanvas();
 
 //------------------------------------------------
-// Просто заставьте кнопку работать
-fileButton.addEventListener('click', () => {
-    fileInput.click();
-    alert('TV');
-});
-
 // И для touch
 fileButton.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    fileInput.click();
     alert('TV touch');
+    e.preventDefault();
+
+    // Удаляем старый input
+    if (fileInput.parentNode) {
+        fileInput.parentNode.removeChild(fileInput);
+    }
+
+    // Создаем новый input
+    const newFileInput = document.createElement('input');
+    newFileInput.type = 'file';
+    newFileInput.id = 'audioFile';
+    newFileInput.accept = 'audio/*';
+    newFileInput.style.display = 'none';
+
+    // Добавляем обработчик
+    newFileInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            await handleFileSelection(file);
+        }
+    });
+
+    document.body.appendChild(newFileInput);
+
+    // Триггерим клик
+    setTimeout(() => {
+        newFileInput.click();
+    }, 100);
 });
+
+async function handleFileSelection(file) {
+    const validation = validateAudioFile(file);
+    if (!validation.isValid) {
+        alert(validation.error);
+        return;
+    }
+
+    try {
+        fileButton.textContent = 'Loading...';
+        fileButton.disabled = true;
+
+        await loadAudioFile(file);
+
+        fileButton.classList.add('has-file');
+        const fileName =
+            file.name.length > 20
+                ? file.name.substring(0, 17) + '...'
+                : file.name;
+        fileButton.textContent = fileName;
+
+        initPixiVisualizer();
+    } catch (error) {
+        console.error('Error:', error);
+        fileButton.textContent = 'Choose Audio File';
+        fileButton.classList.remove('has-file');
+        alert('Error: ' + error.message);
+    } finally {
+        fileButton.disabled = false;
+    }
+}
 //------------------------------------------------
 
 // Обработчик выбора файла (кнопка "Choose Audio File")
 fileInput.addEventListener('change', async (event) => {
     // Получение первого выбранного файла из события
     const file = event.target.files[0];
-    alert('file ', file);
 
     // Проверка на соответствие file аудио формату
     const validation = validateAudioFile(file);
