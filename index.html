@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SoundVisual - Node.js/ES6</title>
+        <link rel="stylesheet" href="./styles.css" />
+    </head>
+    <body>
+        <label class="file-label">
+            <input type="file" id="audioFile" accept="audio/*" />
+            <span class="file-button">Choose Audio File</span>
+        </label>
+
+        <!-- Canvas в центре -->
+        <div class="canvas-container">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <!-- Кнопки внизу -->
+        <div class="controls">
+            <button class="btnPlay">Play</button>
+            <button class="btnPause">Pause</button>
+            <button class="btnStop">Stop</button>
+
+            <!-- Выбор профилей -->
+            <div class="profile-selector">
+                <label for="profileSelect">Profile:</label>
+                <select id="profileSelect" class="profile-select">
+                    <option value="DEFAULT">Default</option>
+                    <option value="ROCK">Rock</option>
+                    <option value="ELECTRONIC">Electronic</option>
+                    <option value="CLASSICAL">Classical</option>
+                    <option value="MORRICONE">Morricone</option>
+                </select>
+            </div>
+
+            <!-- Переключатель адаптивной чувствительности -->
+            <label class="toggle-label">
+                <input
+                    type="checkbox"
+                    id="adaptiveToggle"
+                    class="toggle-input"
+                />
+                <span class="toggle-slider"></span>
+                <span class="toggle-text">Auto Sense</span>
+            </label>
+        </div>
+
+        <!-- Загружаем главный модуль -->
+        <script type="module" src="./src/main.js"></script>
+
+        <div
+            id="debug-test"
+            style="position: fixed; top: 10px; right: 10px; z-index: 9999"
+        >
+            <button onclick="runTest()">🔴 ТЕСТ PIXIJS</button>
+        </div>
+
+        <script>
+            async function runTest() {
+                console.log('ЗАПУСКАЕМ ТЕСТ PIXIJS');
+
+                // Создаем canvas вручную
+                const testCanvas = document.createElement('canvas');
+                testCanvas.width = 400;
+                testCanvas.height = 300;
+                testCanvas.style.position = 'fixed';
+                testCanvas.style.top = '50px';
+                testCanvas.style.right = '50px';
+                testCanvas.style.border = '3px solid green';
+                testCanvas.style.zIndex = '9999';
+                document.body.appendChild(testCanvas);
+
+                try {
+                    // Используем УЖЕ ИМПОРТИРОВАННЫЙ PIXI из основного кода
+                    if (window.PIXI) {
+                        console.log('PIXI уже загружен:', window.PIXI.VERSION);
+
+                        const app = new PIXI.Application({
+                            canvas: testCanvas,
+                            width: 400,
+                            height: 300,
+                            backgroundColor: 0x1099bb,
+                        });
+
+                        const rect = new PIXI.Graphics();
+                        rect.beginFill(0xff0000);
+                        rect.drawRect(50, 50, 100, 100);
+                        rect.endFill();
+                        app.stage.addChild(rect);
+
+                        console.log('✅ ТЕСТ УСПЕШЕН: PixiJS работает');
+                    } else {
+                        console.error('❌ PIXI не найден в window');
+                    }
+                } catch (error) {
+                    console.error('❌ ТЕСТ ПРОВАЛЕН:', error);
+                }
+            }
+        </script>
+    </body>
+</html>

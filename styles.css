@@ -1,0 +1,241 @@
+/* Убираем стандартные отступы браузера у всех элементов */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Стили для всей страницы */
+body {
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100vh;
+    background-color: #0a0000;
+    gap: 20px;
+}
+
+/* Контейнер для canvas в центре */
+.canvas-container {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+}
+
+#canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Кнопки внизу */
+.controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+
+/* Стили для кастомного input file */
+.file-label {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+/* Прячем настоящий input */
+#audioFile {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+}
+
+/* Стили для нашей красивой кнопки */
+.file-button {
+    display: inline-block;
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    background-color: #2196f3;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Эффекты при наведении на input */
+.file-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    background-color: #1976d2;
+}
+
+/* Эффекты при нажатии на input */
+.file-button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Стиль когда файл выбран */
+.file-button.has-file {
+    background-color: #4caf50; /* Зеленый */
+}
+
+/* Стиль когда файл выбран и при наведении */
+.file-button.has-file:hover {
+    background-color: #45a049;
+}
+
+/* Стили для кнопок */
+.btnPlay,
+.btnPause,
+.btnStop {
+    /* Добавляем отступы внутри кнопок */
+    padding: 12px 24px;
+    /* Увеличиваем размер шрифта */
+    font-size: 16px;
+    /* Скругляем углы кнопок */
+    border-radius: 6px;
+    /* Убираем стандартную рамку браузера */
+    border: none;
+    /* Добавляем тень для объема */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    /* Курсор указателя при наведении */
+    cursor: pointer;
+    /* Плавные анимации при взаимодействии */
+    transition: all 0.3s ease;
+}
+
+/* Цвета для кнопки Play */
+.btnPlay {
+    background-color: #4caf50;
+    color: white;
+}
+
+/* Цвета для кнопки Pause */
+.btnPause {
+    background-color: #ff9800;
+    color: white;
+}
+
+/* Цвета для кнопки Stop */
+.btnStop {
+    background-color: #b71c1c; /* Темно-красный */
+    color: white;
+}
+
+/* Эффекты при наведении на кнопки */
+.btnPlay:hover,
+.btnPause:hover,
+.btnStop:hover {
+    /* Небольшое поднятие кнопки */
+    transform: translateY(-2px);
+    /* Усиление тени */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Эффекты при нажатии на кнопки */
+.btnPlay:active,
+.btnPause:active,
+.btnStop:active {
+    /* Опускание кнопки */
+    transform: translateY(0);
+    /* Уменьшение тени */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* === АДАПТИВНАЯ ЧУВСТВИТЕЛЬНОСТЬ === */
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #fff;
+    user-select: none;
+    margin-left: 20px;
+}
+
+.toggle-input {
+    display: none;
+}
+
+.toggle-slider {
+    position: relative;
+    width: 44px;
+    height: 22px;
+    background: #555;
+    border-radius: 11px;
+    transition: all 0.3s ease;
+}
+
+.toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: all 0.3s ease;
+}
+
+.toggle-input:checked + .toggle-slider {
+    background: #4caf50;
+}
+
+.toggle-input:checked + .toggle-slider:before {
+    transform: translateX(22px);
+}
+
+.toggle-text {
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ✅ Цвет текста при ВКЛЮЧЕННОМ состоянии */
+.toggle-input:checked ~ .toggle-text {
+    color: #4caf50; /* Зеленый как у переключателя */
+}
+
+/* === СЕЛЕКТОР ПРОФИЛЕЙ === */
+.profile-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 20px;
+}
+
+.profile-selector label {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.profile-select {
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background-color: #333;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.profile-select:hover {
+    border-color: #777;
+    background-color: #444;
+}
+
+.profile-select:focus {
+    outline: none;
+    border-color: #4caf50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
