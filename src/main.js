@@ -159,7 +159,7 @@ console.log('Приложение инициализировано');
 const DEMO_TRACKS = [
     {
         name: 'Электронная музыка (бит)',
-        url: 'https://dw2.hitmos.fm/L21wMy83MzMzMjY4L05laWtlZCwgUG9ydHVnYWwuIFRoZSBNYW4gLSBHbGlkZSAoaGl0bW9zLmZtKS5tcDM=.mp3',
+        url: './audio/track1.mp3',
         description: 'Ритмичный электронный бит',
     },
     {
