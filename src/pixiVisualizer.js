@@ -1,4 +1,5 @@
-import * as PIXI from 'pixi.js';
+//import * as PIXI from 'pixi.js';
+import * as PIXI from 'https://cdn.jsdelivr.net/npm/pixi.js@7.3.3/dist/pixi.min.js';
 import { getAnalyser } from './audioManager';
 import { PROFILES } from './frequencyProfiles';
 import { AdaptiveSensitivity } from './adaptiveSensitivity.js';
