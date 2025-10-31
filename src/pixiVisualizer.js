@@ -5,6 +5,7 @@ import { getAnalyser } from './audioManager.js';
 import { PROFILES } from './frequencyProfiles.js';
 import { AdaptiveSensitivity } from './adaptiveSensitivity.js';
 
+let PIXI = null; // Модуль PixiJS
 let app; // Приложение PIXI
 let spotlights = []; // массив прожекторов
 let currentBands = PROFILES.DEFAULT; // Частотный профиль по умолчанию
@@ -13,20 +14,38 @@ let adaptiveProcessor; // Процессор для управления ада�
 // Флаг управления адаптивной чувствительностью
 let useAdaptiveSensitivity = false;
 
+// ФУНКЦИЯ ДЛЯ АСИНХРОННОЙ ЗАГРУЗКИ PIXIJS
+async function loadPixiJS() {
+    return new Promise((resolve, reject) => {
+        if (window.PIXI) {
+            PIXI = window.PIXI;
+            resolve(PIXI);
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src =
+            'https://cdn.jsdelivr.net/npm/pixi.js@7.3.3/dist/pixi.min.js';
+
+        script.onload = () => {
+            PIXI = window.PIXI;
+            console.log('PIXI загружен');
+            resolve(PIXI);
+        };
+
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
 export async function initPixiVisualizer() {
     console.log('Инициализация PixiJS визуализатора...');
-    //console.log('📦 PixiJS version:', PIXI.VERSION);
 
     try {
-        // Динамический импорт PixiJS
-        const PIXI = await import(
-            'https://cdn.jsdelivr.net/npm/pixi.js@7.x/dist/pixi.min.js'
-        );
-        // Делаем PIXI глобально доступным
-        window.PIXI = PIXI;
-
-        console.log('PIXI loaded:', PIXI);
-        //console.log('Application constructor:', PIXI.Application);
+        // Убеждаемся, что PIXI загружен
+        if (!PIXI) {
+            await loadPixiJS();
+        }
 
         // Останавливаем предыдущую визуализацию
         stopPixiVisualizer();
@@ -558,6 +577,7 @@ function handleResize() {
     console.log('PixiJS canvas resized:', pixiCanvas.width, pixiCanvas.height);
 }
 
+/*
 // Глобальный доступ для отладки
 window.pixiVisualizer = {
     init: initPixiVisualizer,
@@ -571,6 +591,7 @@ window.pixiVisualizer = {
         processor: adaptiveProcessor,
     }),
 };
+*/
 
 /*
 Для UI потом просто нужно будет вызывать setAdaptiveSensitivity(true/false)
