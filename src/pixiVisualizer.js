@@ -6,7 +6,6 @@ import { AdaptiveSensitivity } from './adaptiveSensitivity.js';
 
 // Делаем PIXI глобально доступным
 window.PIXI = PIXI;
-console.log('📦 PixiJS version:', PIXI.VERSION);
 
 let app; // Приложение PIXI
 let spotlights = []; // массив прожекторов
@@ -18,6 +17,7 @@ let useAdaptiveSensitivity = false;
 
 export function initPixiVisualizer() {
     console.log('Инициализация PixiJS визуализатора...');
+    console.log('📦 PixiJS version:', PIXI.VERSION);
 
     // Останавливаем предыдущую визуализацию
     stopPixiVisualizer();
