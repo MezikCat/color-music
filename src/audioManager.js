@@ -137,3 +137,48 @@ export function getAudioElement() {
     // Возвращает ссылку на HTML5 audio элемент
     return audioElement;
 }
+
+// *** Для Андроид TV ***
+export async function loadAudioFromUrl(url, fileName = 'Online Audio') {
+    try {
+        console.log('Loading audio from URL:', url);
+
+        // Останавливаем текущее воспроизведение
+        if (window.audioContext) {
+            await pauseAudio();
+        }
+
+        // Создаем новый AudioContext если нужно
+        if (!window.audioContext) {
+            window.audioContext = new (window.AudioContext ||
+                window.webkitAudioContext)();
+            window.audioElement = new Audio();
+        }
+
+        // Загружаем аудио по URL
+        window.audioElement.src = url;
+        window.audioElement.crossOrigin = 'anonymous';
+
+        // Ждем загрузки метаданных
+        await new Promise((resolve, reject) => {
+            window.audioElement.addEventListener('loadedmetadata', resolve);
+            window.audioElement.addEventListener('error', reject);
+        });
+
+        // Подключаем к Web Audio API
+        const source = window.audioContext.createMediaElementSource(
+            window.audioElement
+        );
+        window.analyser = window.audioContext.createAnalyser();
+        window.analyser.fftSize = 256;
+
+        source.connect(window.analyser);
+        window.analyser.connect(window.audioContext.destination);
+
+        console.log('Audio loaded successfully from URL');
+        return true;
+    } catch (error) {
+        console.error('Error loading audio from URL:', error);
+        throw new Error(`Failed to load audio: ${error.message}`);
+    }
+}
