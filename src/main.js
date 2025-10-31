@@ -54,12 +54,14 @@ setupCanvas();
 // Просто заставьте кнопку работать
 fileButton.addEventListener('click', () => {
     fileInput.click();
+    alert('TV');
 });
 
 // И для touch
 fileButton.addEventListener('touchend', (e) => {
     e.preventDefault();
     fileInput.click();
+    alert('TV touch');
 });
 //------------------------------------------------
 
@@ -67,6 +69,7 @@ fileButton.addEventListener('touchend', (e) => {
 fileInput.addEventListener('change', async (event) => {
     // Получение первого выбранного файла из события
     const file = event.target.files[0];
+    alert('file ', file);
 
     // Проверка на соответствие file аудио формату
     const validation = validateAudioFile(file);
