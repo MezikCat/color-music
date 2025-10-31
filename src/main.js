@@ -50,6 +50,19 @@ function setupCanvas() {
 window.addEventListener('resize', setupCanvas);
 setupCanvas();
 
+//------------------------------------------------
+// Просто заставьте кнопку работать
+fileButton.addEventListener('click', () => {
+    fileInput.click();
+});
+
+// И для touch
+fileButton.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    fileInput.click();
+});
+//------------------------------------------------
+
 // Обработчик выбора файла (кнопка "Choose Audio File")
 fileInput.addEventListener('change', async (event) => {
     // Получение первого выбранного файла из события
