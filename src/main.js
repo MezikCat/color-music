@@ -1,6 +1,5 @@
 import {
     loadAudioFile,
-    loadAudioFromUrl,
     playAudio,
     pauseAudio,
     getIsPlaying,
@@ -21,6 +20,9 @@ const pauseButton = document.querySelector('.btnPause');
 const canvas = document.getElementById('canvas');
 const adaptiveToggle = document.getElementById('adaptiveToggle');
 const profileSelect = document.getElementById('profileSelect');
+
+// Локальный файл
+const LOCAL_AUDIO_FILE = './audio/track1.mp3';
 
 // Обработчик переключателя "Auto Sense"
 adaptiveToggle.addEventListener('change', (e) => {
@@ -53,9 +55,16 @@ setupCanvas();
 
 //------------------------------------------------
 // И для touch
-fileButton.addEventListener('touchend', (e) => {
+fileButton.addEventListener('touchend', async (e) => {
     alert('TV touch');
     e.preventDefault();
+
+    try {
+        await loadAudioFile(LOCAL_AUDIO_FILE);
+        initPixiVisualizer();
+    } catch (error) {
+        alert('Ошибка: ' + error.message);
+    }
 });
 
 //------------------------------------------------
@@ -153,77 +162,3 @@ document.addEventListener('visibilitychange', () => {
 
 // Финальное сообщение об успешной загрузке приложения
 console.log('Приложение инициализировано');
-
-//--------------------------------------
-// Демо-треки с прямыми ссылками
-const DEMO_TRACKS = [
-    {
-        name: 'Электронная музыка (бит)',
-        url: './audio/track1.mp3',
-        description: 'Ритмичный электронный бит',
-    },
-];
-
-// Инициализация
-document.addEventListener('DOMContentLoaded', () => {
-    createLocalTrackSelector();
-    setupEventListeners();
-});
-
-// Создаем выбор треков
-function createLocalTrackSelector() {
-    const selector = document.createElement('div');
-    selector.innerHTML = `
-        <div style="background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; margin: 20px 0;">
-            <h3 style="color: white; margin-bottom: 15px;">🎵 Выберите трек</h3>
-            <div id="localTracksList" style="display: flex; flex-direction: column; gap: 10px;">
-                ${DEMO_TRACKS.map(
-                    (track) => `
-                    <button class="local-track-btn" data-url="${track.url}"
-                            style="padding: 15px; background: #333; color: white; border: 1px solid #555; border-radius: 8px;">
-                        <strong>${track.name}</strong>
-                        <div style="font-size: 12px; opacity: 0.7;">${track.description}</div>
-                    </button>
-                `
-                ).join('')}
-            </div>
-        </div>
-    `;
-
-    document.body.insertBefore(selector, document.body.firstChild);
-
-    // Обработчики треков
-    document.querySelectorAll('.local-track-btn').forEach((btn) => {
-        btn.addEventListener('click', async () => {
-            await loadLocalTrack(
-                btn.dataset.url,
-                btn.querySelector('strong').textContent
-            );
-        });
-    });
-}
-
-// Загрузка трека
-async function loadLocalTrack(url, name) {
-    try {
-        await loadAudioFromUrl(url, name);
-        console.log('Трек загружен:', name);
-    } catch (error) {
-        alert('Ошибка загрузки: ' + error.message);
-    }
-}
-
-// Обработчики событий
-function setupEventListeners() {
-    // Play
-    fileButton.addEventListener('touchend', async () => {
-        if (getIsPlaying()) return;
-        try {
-            await playAudio();
-            initPixiVisualizer();
-        } catch (error) {
-            alert('Сначала выберите трек');
-        }
-    });
-}
-// ----------------------------------------------------------
