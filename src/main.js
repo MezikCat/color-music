@@ -61,15 +61,19 @@ fileButton.addEventListener('touchend', async (e) => {
 
         console.log('Загружаем локальный файл');
 
+        // Создаем фиктивный File объект
+        const fakeFile = await createFakeFile(
+            './audio/track1.mp3',
+            'track1.mp3'
+        );
         // Просто вызываем существующую функцию из audioManager
-        await loadAudioFile('./audio/track1.mp3');
+        await loadAudioFile(fakeFile);
 
         fileButton.textContent = 'Demo Track';
         alert('Файл успешно загружен');
 
-        // Инициализируем визуализатор
+        // Инициализируем визуализатор и играем файл
         initPixiVisualizer();
-
         await playAudio();
     } catch (error) {
         console.error('Ошибка загрузки:', error);
@@ -80,6 +84,19 @@ fileButton.addEventListener('touchend', async (e) => {
     }
 });
 
+// Функция создания фиктивного File объекта
+async function createFakeFile(url, fileName) {
+    try {
+        // Загружаем файл через fetch
+        const response = await fetch(url);
+        const blob = await response.blob();
+
+        // Создаем File объект из blob
+        return new File([blob], fileName, { type: 'audio/mp3' });
+    } catch (error) {
+        throw new Error('Не удалось загрузить файл: ' + error.message);
+    }
+}
 //------------------------------------------------
 
 // Обработчик выбора файла (кнопка "Choose Audio File")
