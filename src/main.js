@@ -56,14 +56,38 @@ setupCanvas();
 //------------------------------------------------
 // И для touch
 fileButton.addEventListener('touchend', async (e) => {
-    alert('TV touch');
     e.preventDefault();
 
     try {
-        await loadAudioFile(LOCAL_AUDIO_FILE);
+        fileButton.textContent = 'Loading...';
+        fileButton.disabled = true;
+
+        console.log('Загружаем локальный файл:', LOCAL_AUDIO_FILE);
+
+        // Просто создаем audio элемент с ссылкой
+        if (!window.audioElement) {
+            window.audioElement = new Audio();
+        }
+
+        window.audioElement.src = LOCAL_AUDIO_FILE;
+
+        // Ждем загрузки
+        await new Promise((resolve, reject) => {
+            window.audioElement.addEventListener('canplaythrough', resolve);
+            window.audioElement.addEventListener('error', reject);
+        });
+
+        fileButton.textContent = 'Demo Track';
+        console.log('Файл успешно загружен');
+
+        // Инициализируем визуализатор
         initPixiVisualizer();
     } catch (error) {
-        alert('Ошибка: ' + error.message);
+        console.error('Ошибка загрузки:', error);
+        fileButton.textContent = 'Choose Audio File';
+        alert('Ошибка загрузки файла');
+    } finally {
+        fileButton.disabled = false;
     }
 });
 
