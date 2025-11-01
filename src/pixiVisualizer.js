@@ -67,7 +67,8 @@ export async function initPixiVisualizer() {
             width: pixiCanvas.width,
             height: pixiCanvas.height,
             backgroundColor: 0x000000, // черный фон
-            antialias: true,
+            //antialias: true,
+            antialias: false,
             backgroundAlpha: 1, // непрозрачный фон
             autoDensity: true,
             resolution: window.devicePixelRatio || 1, // для четкости
@@ -192,8 +193,8 @@ function createSpotlights() {
         // 3. Внешнее свечение прожектора
         // Создаем фильтр с контролем качества
         const glowBlur = new PIXI.BlurFilter();
-        glowBlur.blur = 100; //8;
-        glowBlur.quality = 20; //4;
+        glowBlur.blur = 8; //100; //8;
+        glowBlur.quality = 4; //20; //4;
         glowBlur.repeatEdgePixels = false;
 
         // Тело свечения
