@@ -21,9 +21,6 @@ const canvas = document.getElementById('canvas');
 const adaptiveToggle = document.getElementById('adaptiveToggle');
 const profileSelect = document.getElementById('profileSelect');
 
-// Локальный файл
-const LOCAL_AUDIO_FILE = './audio/track1.mp3';
-
 // Обработчик переключателя "Auto Sense"
 adaptiveToggle.addEventListener('change', (e) => {
     const enabled = e.target.checked;
@@ -62,26 +59,18 @@ fileButton.addEventListener('touchend', async (e) => {
         fileButton.textContent = 'Loading...';
         fileButton.disabled = true;
 
-        console.log('Загружаем локальный файл:', LOCAL_AUDIO_FILE);
+        console.log('Загружаем локальный файл');
 
-        // Просто создаем audio элемент с ссылкой
-        if (!window.audioElement) {
-            window.audioElement = new Audio();
-        }
-
-        window.audioElement.src = LOCAL_AUDIO_FILE;
-
-        // Ждем загрузки
-        await new Promise((resolve, reject) => {
-            window.audioElement.addEventListener('canplaythrough', resolve);
-            window.audioElement.addEventListener('error', reject);
-        });
+        // Просто вызываем существующую функцию из audioManager
+        await loadAudioFile('./audio/track1.mp3');
 
         fileButton.textContent = 'Demo Track';
-        console.log('Файл успешно загружен');
+        alert('Файл успешно загружен');
 
         // Инициализируем визуализатор
         initPixiVisualizer();
+
+        await playAudio();
     } catch (error) {
         console.error('Ошибка загрузки:', error);
         fileButton.textContent = 'Choose Audio File';
