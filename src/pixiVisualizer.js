@@ -96,6 +96,8 @@ export async function initPixiVisualizer() {
 
         // Запускаем анимацию
         app.ticker.add(animate);
+        // ★★★ ВОТ ЗДЕСЬ - ОГРАНИЧИВАЕМ FPS ★★★
+        app.ticker.maxFPS = 30;
         console.log('Анимация запущена');
 
         return true;
