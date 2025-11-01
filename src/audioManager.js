@@ -139,9 +139,9 @@ export function getAudioElement() {
 }
 
 // *** Для Андроид TV ***
-export async function loadAudioFromUrl(url, fileName = 'Online Audio') {
+export async function loadAudioFromUrl(url, fileName = 'Local Audio') {
     try {
-        console.log('Loading audio from URL:', url);
+        console.log('Loading local audio:', url);
 
         // Останавливаем текущее воспроизведение
         if (window.audioContext) {
@@ -155,14 +155,16 @@ export async function loadAudioFromUrl(url, fileName = 'Online Audio') {
             window.audioElement = new Audio();
         }
 
-        // Загружаем аудио по URL
+        // Загружаем локальный файл (CORS не нужен!)
         window.audioElement.src = url;
-        window.audioElement.crossOrigin = 'anonymous';
 
-        // Ждем загрузки метаданных
+        // Ждем загрузки
         await new Promise((resolve, reject) => {
-            window.audioElement.addEventListener('loadedmetadata', resolve);
+            window.audioElement.addEventListener('loadeddata', resolve);
             window.audioElement.addEventListener('error', reject);
+
+            // Таймаут на случай проблем
+            setTimeout(() => reject(new Error('Timeout loading audio')), 10000);
         });
 
         // Подключаем к Web Audio API
@@ -175,10 +177,10 @@ export async function loadAudioFromUrl(url, fileName = 'Online Audio') {
         source.connect(window.analyser);
         window.analyser.connect(window.audioContext.destination);
 
-        console.log('Audio loaded successfully from URL');
+        console.log('Local audio loaded successfully');
         return true;
     } catch (error) {
-        console.error('Error loading audio from URL:', error);
-        throw new Error(`Failed to load audio: ${error.message}`);
+        console.error('Error loading local audio:', error);
+        throw new Error(`Не удалось загрузить аудио: ${error.message}`);
     }
 }

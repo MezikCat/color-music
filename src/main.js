@@ -162,136 +162,68 @@ const DEMO_TRACKS = [
         url: './audio/track1.mp3',
         description: 'Ритмичный электронный бит',
     },
-    {
-        name: 'Джазовый саксофон',
-        url: 'https://dw2.hitmos.fm/L21wMy84MDk0ODQxL0F2YSBNYXggLSBEb24ndCBDbGljayBQbGF5IChoaXRtb3MuZm0pLm1wMw==.mp3',
-        description: 'Мягкий джазовый саунд',
-    },
-    {
-        nmae: 'Шансон',
-        url: 'https://s2dw.pesni.fm/L3RyYWNrLzE5MzEyNzE3L01hZ2FzIC0g0KHQvtGI0LXQuyDRgSDRg9C80LAgKHBlc25pLmZtKS5tcDM=.mp3',
-        description: 'Мягкий джазовый саунд',
-    },
 ];
 
-// Создаем интерфейс выбора треков
-function createTrackSelector() {
+// Инициализация
+document.addEventListener('DOMContentLoaded', () => {
+    createLocalTrackSelector();
+    setupEventListeners();
+});
+
+// Создаем выбор треков
+function createLocalTrackSelector() {
     const selector = document.createElement('div');
-    selector.className = 'track-selector';
     selector.innerHTML = `
         <div style="background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; margin: 20px 0;">
-            <h3 style="color: white; margin-bottom: 15px;">🎵 Выберите демо-трек</h3>
-            <div id="demoTracksList" style="display: flex; flex-direction: column; gap: 10px;">
+            <h3 style="color: white; margin-bottom: 15px;">🎵 Выберите трек</h3>
+            <div id="localTracksList" style="display: flex; flex-direction: column; gap: 10px;">
                 ${DEMO_TRACKS.map(
-                    (track, index) => `
-                    <button class="demo-track-btn" 
-                            data-url="${track.url}"
-                            data-name="${track.name}"
-                            style="padding: 12px; background: #333; color: white; border: 1px solid #555; border-radius: 5px; text-align: left;">
+                    (track) => `
+                    <button class="local-track-btn" data-url="${track.url}"
+                            style="padding: 15px; background: #333; color: white; border: 1px solid #555; border-radius: 8px;">
                         <strong>${track.name}</strong>
-                        <br><small style="opacity: 0.7;">${track.description}</small>
+                        <div style="font-size: 12px; opacity: 0.7;">${track.description}</div>
                     </button>
                 `
                 ).join('')}
             </div>
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #555;">
-                <h4 style="color: white; margin-bottom: 10px;">🔗 Или введите свою ссылку</h4>
-                <input type="text" id="customUrl" placeholder="https://example.com/audio.mp3" 
-                       style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px;">
-                <button id="loadCustomUrl" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px;">
-                    Загрузить по ссылке
-                </button>
-            </div>
         </div>
     `;
 
-    // Вставляем перед кнопками управления
-    const controls = document.querySelector('.file-button').parentNode;
-    controls.parentNode.insertBefore(selector, controls);
+    document.body.insertBefore(selector, document.body.firstChild);
 
-    setupTrackSelectorEvents();
-}
-
-// Настраиваем обработчики событий
-function setupTrackSelectorEvents() {
-    // Кнопки демо-треков
-    document.querySelectorAll('.demo-track-btn').forEach((btn) => {
+    // Обработчики треков
+    document.querySelectorAll('.local-track-btn').forEach((btn) => {
         btn.addEventListener('click', async () => {
-            const url = btn.dataset.url;
-            const name = btn.dataset.name;
-            await loadTrackFromUrl(url, name);
-        });
-
-        // Для TV добавляем поддержку фокуса
-        btn.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                btn.click();
-            }
+            await loadLocalTrack(
+                btn.dataset.url,
+                btn.querySelector('strong').textContent
+            );
         });
     });
-
-    // Загрузка по кастомной ссылке
-    document
-        .getElementById('loadCustomUrl')
-        .addEventListener('click', async () => {
-            const url = document.getElementById('customUrl').value.trim();
-            if (!url) {
-                alert('Введите ссылку на аудио файл');
-                return;
-            }
-
-            if (!url.startsWith('http')) {
-                alert('Ссылка должна начинаться с http:// или https://');
-                return;
-            }
-
-            await loadTrackFromUrl(url, 'Custom Track');
-        });
 }
 
-// Функция загрузки трека по URL
-async function loadTrackFromUrl(url, trackName) {
+// Загрузка трека
+async function loadLocalTrack(url, name) {
     try {
-        fileButton.textContent = 'Loading...';
-        fileButton.disabled = true;
-
-        console.log('Loading track:', trackName, url);
-
-        // Загружаем аудио по URL
-        await loadAudioFromUrl(url, trackName);
-
-        // Обновляем интерфейс
-        fileButton.classList.add('has-file');
-        fileButton.textContent =
-            trackName.length > 20
-                ? trackName.substring(0, 17) + '...'
-                : trackName;
-
-        console.log('Track loaded successfully');
-
-        // Автоматически запускаем визуализатор (опционально)
-        setTimeout(() => {
-            initPixiVisualizer();
-        }, 500);
+        await loadAudioFromUrl(url, name);
+        console.log('Трек загружен:', name);
     } catch (error) {
-        console.error('Error loading track:', error);
-        fileButton.classList.remove('has-file');
-        fileButton.textContent = 'Choose Audio File';
         alert('Ошибка загрузки: ' + error.message);
-    } finally {
-        fileButton.disabled = false;
     }
 }
 
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', () => {
-    createTrackSelector();
-
-    // Скрываем оригинальный file input на TV
-    if (/TV|Android.*TV/i.test(navigator.userAgent)) {
-        fileInput.style.display = 'none';
-        fileButton.style.display = 'none'; // или оставить как fallback
-    }
-});
+// Обработчики событий
+function setupEventListeners() {
+    // Play
+    fileButton.addEventListener('touchend', async () => {
+        if (getIsPlaying()) return;
+        try {
+            await playAudio();
+            initPixiVisualizer();
+        } catch (error) {
+            alert('Сначала выберите трек');
+        }
+    });
+}
 // ----------------------------------------------------------
