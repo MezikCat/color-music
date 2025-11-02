@@ -51,7 +51,7 @@ window.addEventListener('resize', setupCanvas);
 setupCanvas();
 
 //------------------------------------------------
-// И для touch
+// Обработчик для Android TV
 fileButton.addEventListener('touchend', async (e) => {
     e.preventDefault();
 
@@ -161,15 +161,7 @@ playButton.addEventListener('click', async () => {
         // Инициализируем визуализатор (пошла динамика) !!!
         initPixiVisualizer();
     } catch (error) {
-        // Если аудио не загружено, предлагаем выбрать трек
-        if (
-            error.message.includes('load') ||
-            error.message.includes('source')
-        ) {
-            alert('Сначала выберите аудио трек из списка выше');
-        } else {
-            alert(error.message);
-        }
+        alert(error.message);
     }
 });
 

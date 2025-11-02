@@ -49,55 +49,5 @@
 
         <!-- Загружаем главный модуль -->
         <script type="module" src="./src/main.js"></script>
-
-        <div
-            id="debug-test"
-            style="position: fixed; top: 10px; right: 10px; z-index: 9999"
-        >
-            <button onclick="runTest()">🔴 ТЕСТ PIXIJS</button>
-        </div>
-
-        <script>
-            async function runTest() {
-                console.log('ЗАПУСКАЕМ ТЕСТ PIXIJS');
-
-                // Создаем canvas вручную
-                const testCanvas = document.createElement('canvas');
-                testCanvas.width = 400;
-                testCanvas.height = 300;
-                testCanvas.style.position = 'fixed';
-                testCanvas.style.top = '50px';
-                testCanvas.style.right = '50px';
-                testCanvas.style.border = '3px solid green';
-                testCanvas.style.zIndex = '9999';
-                document.body.appendChild(testCanvas);
-
-                try {
-                    // Используем УЖЕ ИМПОРТИРОВАННЫЙ PIXI из основного кода
-                    if (window.PIXI) {
-                        console.log('PIXI уже загружен:', window.PIXI.VERSION);
-
-                        const app = new PIXI.Application({
-                            canvas: testCanvas,
-                            width: 400,
-                            height: 300,
-                            backgroundColor: 0x1099bb,
-                        });
-
-                        const rect = new PIXI.Graphics();
-                        rect.beginFill(0xff0000);
-                        rect.drawRect(50, 50, 100, 100);
-                        rect.endFill();
-                        app.stage.addChild(rect);
-
-                        console.log('✅ ТЕСТ УСПЕШЕН: PixiJS работает');
-                    } else {
-                        console.error('❌ PIXI не найден в window');
-                    }
-                } catch (error) {
-                    console.error('❌ ТЕСТ ПРОВАЛЕН:', error);
-                }
-            }
-        </script>
     </body>
 </html>

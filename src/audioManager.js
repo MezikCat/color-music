@@ -62,8 +62,7 @@ export async function loadAudioFile(file) {
     // Включаем аудио анализатор
     analyser = audioContext.createAnalyser();
     // Устанавливаем детализацию анализатора (default)
-    //analyser.fftSize = 2048;
-    analyser.fftSize = 128;
+    analyser.fftSize = 1024;
 
     // Сборка всей звуковой цепочки [источник -> анализатор -> выход]
     source.connect(analyser);

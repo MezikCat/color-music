@@ -14,7 +14,7 @@ let adaptiveProcessor; // Процессор для управления ада�
 // Флаг управления адаптивной чувствительностью
 let useAdaptiveSensitivity = false;
 
-// ФУНКЦИЯ ДЛЯ АСИНХРОННОЙ ЗАГРУЗКИ PIXIJS
+// загрузка pixi.js
 async function loadPixiJS() {
     return new Promise((resolve, reject) => {
         if (window.PIXI) {
@@ -67,8 +67,7 @@ export async function initPixiVisualizer() {
             width: pixiCanvas.width,
             height: pixiCanvas.height,
             backgroundColor: 0x000000, // черный фон
-            //antialias: true,
-            antialias: false,
+            antialias: true,
             backgroundAlpha: 1, // непрозрачный фон
             autoDensity: true,
             resolution: window.devicePixelRatio || 1, // для четкости
@@ -96,8 +95,8 @@ export async function initPixiVisualizer() {
 
         // Запускаем анимацию
         app.ticker.add(animate);
-        // ★★★ ВОТ ЗДЕСЬ - ОГРАНИЧИВАЕМ FPS ★★★
-        app.ticker.maxFPS = 30;
+        // Ограничение FPS
+        //app.ticker.maxFPS = 30;
         console.log('Анимация запущена');
 
         return true;
@@ -195,8 +194,8 @@ function createSpotlights() {
         // 3. Внешнее свечение прожектора
         // Создаем фильтр с контролем качества
         const glowBlur = new PIXI.BlurFilter();
-        glowBlur.blur = 8; //100; //8;
-        glowBlur.quality = 4; //20; //4;
+        glowBlur.blur = 150; //100; //8;
+        glowBlur.quality = 10; //20; //4;
         glowBlur.repeatEdgePixels = false;
 
         // Тело свечения
@@ -442,6 +441,10 @@ function animate() {
         const percent = Math.round(intensity * 100);
         spotlight.text.text = `${spotlight.band.name} ${percent}%`;
         spotlight.text.style.fill = intensity > 0.8 ? '#ffff00' : '#ffffff';
+        spotlight.text.scale.set(baseScale);
+        // Обновляем позицию текста в зависимости от baseScale
+        const originalTextY = (spotlight.gradientSprite.height / 2) * 1.8;
+        spotlight.text.y = originalTextY * baseScale;
     });
 }
 
