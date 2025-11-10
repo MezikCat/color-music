@@ -1,7 +1,15 @@
 // Простая проверка - является ли файл аудио
 function isAudioFile(file) {
     // Проверяем расширение файла и MIME-тип
-    const audioExtensions = ['.mp3', '.wav', '.ogg', '.flac', '.aac', '.m4a'];
+    const audioExtensions = [
+        '.mp3',
+        '.wav',
+        '.ogg',
+        '.flac',
+        '.aac',
+        '.m4a',
+        '.webm',
+    ];
     const fileName = file.name.toLowerCase();
     const isAudio =
         file.type.startsWith('audio/') ||
@@ -10,25 +18,49 @@ function isAudioFile(file) {
     return isAudio;
 }
 
-// Основная функция валидации
-export function validateAudioFile(file) {
-    // Проверяем, что файл не null или undefined
+// Основная функция валидации (files - массив выбранных файлов)
+export function validateAudioFiles(files) {
+    // Массив валидных файлов
+    const validFiles = [];
+
+    // Проверяем каждый файл, невалидные игнорируем
+    files.forEach((file, index) => {
+        const validation = validateSingleAudioFiles(file);
+
+        if (validation.isValid) {
+            validFiles.push({
+                file: file, // Объект файла
+                fileName: validation.fileName,
+                fileSize: validation.fileSize,
+                fileType: validation.fileType,
+                fileIndex: index,
+            });
+        }
+    });
+
+    return validFiles;
+}
+
+// Вспомогательная функция для валидации одного файла
+function validateSingleAudioFiles(file) {
+    // Проверяем, что файл не null или undefined (т.е. файл не выбран)
     if (!file) {
-        return { isValid: false, error: 'Файл не выбран' };
+        return { isValid: false };
     }
 
     // Проверяем на пустой файл
     if (file.size === 0) {
-        return { isValid: false, error: 'Файл пустой' };
+        return { isValid: false };
     }
 
     // Проверяем размер (50MB максимум)
     if (file.size > 50 * 1024 * 1024) {
-        return { isValid: false, error: 'Файл слишком большой (макс. 50MB)' };
+        return { isValid: false };
     }
 
+    // Проверяем тип файла
     if (!isAudioFile(file)) {
-        return { isValid: false, error: 'Это не аудиофайл' };
+        return { isValid: false };
     }
 
     return {

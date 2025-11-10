@@ -2,31 +2,59 @@ import {
     loadAudioFile,
     playAudio,
     pauseAudio,
+    stopAudio,
     getIsPlaying,
 } from './audioManager.js';
-import { validateAudioFile } from './audioValidator.js';
+import { validateAudioFiles } from './audioValidator.js';
 import {
     initPixiVisualizer,
     stopPixiVisualizer,
     setPixiProfile,
     setAdaptiveSensitivity,
 } from './pixiVisualizer.js';
+import { playlistState } from './playlistState.js';
 
 // Получаем DOM элементы
 const fileButton = document.querySelector('.file-button');
 const fileInput = document.getElementById('audioFile');
 const playButton = document.querySelector('.btnPlay');
 const pauseButton = document.querySelector('.btnPause');
+const stopButton = document.querySelector('.btnStop');
 const canvas = document.getElementById('canvas');
 const adaptiveToggle = document.getElementById('adaptiveToggle');
 const profileSelect = document.getElementById('profileSelect');
+
+// Колбэк для автоматического перехода к следующему треку
+const handleTrackEnd = async () => {
+    console.log('🎵 Трек завершен, проверяем следующий...');
+
+    const playlistInfo = playlistState.getPlaylistInfo();
+
+    if (playlistInfo.hasNext) {
+        // Переходим к следующему треку
+        playlistState.nextTrack();
+        const nextFile = playlistState.getCurrentTrack();
+
+        try {
+            // Рекурсивно передаем тот же колбэк для цепочки воспроизведения
+            await loadAudioFile(nextFile, handleTrackEnd);
+            await playAudio();
+            console.log('✅ Автопереход выполнен');
+        } catch (error) {
+            console.error('❌ Ошибка автоперехода:', error);
+            // Пробуем следующий трек через секунду
+            setTimeout(handleTrackEnd, 1000);
+        }
+    } else {
+        console.log('🏁 Плейлист завершен');
+        // Можно добавить логику повторения плейлиста
+    }
+};
 
 // Обработчик переключателя "Auto Sense"
 adaptiveToggle.addEventListener('change', (e) => {
     const enabled = e.target.checked;
     setAdaptiveSensitivity(enabled);
-
-    // Для контроля
     console.log(`Адаптивная чувствительность: ${enabled ? 'ВКЛ' : 'ВЫКЛ'}`);
 });
 
@@ -34,8 +62,6 @@ adaptiveToggle.addEventListener('change', (e) => {
 profileSelect.addEventListener('change', (e) => {
     const profileName = e.target.value;
     setPixiProfile(profileName);
-
-    // Для контроля
     console.log(`Установлен профиль: ${profileName}`);
 });
 
@@ -59,15 +85,15 @@ fileButton.addEventListener('touchend', async (e) => {
         fileButton.textContent = 'Loading...';
         fileButton.disabled = true;
 
-        console.log('Загружаем локальный файл');
-
         // Создаем фиктивный File объект
         const fakeFile = await createFakeFile(
             './audio/track1.mp3',
             'track1.mp3'
         );
-        // Просто вызываем существующую функцию из audioManager
-        await loadAudioFile(fakeFile);
+
+        // Используем модуль состояния даже для одиночного файла
+        playlistState.setPlaylist([fakeFile]);
+        await loadAudioFile(fakeFile); // Без колбэка - одиночный файл
 
         fileButton.textContent = 'Demo Track';
         alert('Файл успешно загружен');
@@ -90,7 +116,6 @@ async function createFakeFile(url, fileName) {
         // Загружаем файл через fetch
         const response = await fetch(url);
         const blob = await response.blob();
-
         // Создаем File объект из blob
         return new File([blob], fileName, { type: 'audio/mp3' });
     } catch (error) {
@@ -101,14 +126,16 @@ async function createFakeFile(url, fileName) {
 
 // Обработчик выбора файла (кнопка "Choose Audio File")
 fileInput.addEventListener('change', async (event) => {
-    // Получение первого выбранного файла из события
-    const file = event.target.files[0];
+    // Массив выбранных файлов(а) из FileList объекта
+    const files = Array.from(event.target.files);
+    // Проверка на соответствие files аудио формату и прочим требованиям
+    const validFiles = validateAudioFiles(files);
 
-    // Проверка на соответствие file аудио формату
-    const validation = validateAudioFile(file);
-    if (!validation.isValid) {
-        alert(validation.error);
-        fileInput.value = '';
+    console.log(`Из ${files.length} файлов валидны: ${validFiles.length}`);
+
+    // Если нет валидных файлов
+    if (validFiles.length === 0) {
+        alert('Нет подходящих аудиофайлов для загрузки');
         return;
     }
 
@@ -116,23 +143,35 @@ fileInput.addEventListener('change', async (event) => {
         // Показываем загрузку на кнопке
         fileButton.textContent = 'Loading...';
         fileButton.disabled = true;
-        console.log('Загрузка файла...');
 
-        // Вызов асинхронной функции загрузки аудиофайла
-        await loadAudioFile(file);
+        // Сохраняем все валидные файлы в плейлист модуля состояния
+        const audioFiles = validFiles.map((item) => item.file);
+        playlistState.setPlaylist(audioFiles);
 
-        // Показываем имя файла в кнопке "Choose Audio File"
-        fileButton.classList.add('has-file'); // стилизация элемента input
-        // Обрезаем длинные названия файлов
-        const fileName =
-            file.name.length > 20
-                ? file.name.substring(0, 17) + '...'
-                : file.name;
-        fileButton.textContent = fileName;
-        console.log('Файл успешно обработан');
+        console.log(`Плейлист создан: ${audioFiles.length} треков`);
+
+        // Загружаем первый трек с колбеком для автоперехода
+        const firstTrack = playlistState.getCurrentTrack();
+        await loadAudioFile(firstTrack, handleTrackEnd);
+
+        // Обновляем кнопку - показываем количество треков
+        fileButton.classList.add('has-file');
+        // Если есть плейлист (выбрано больше одного файла)
+        if (audioFiles.length > 1) {
+            fileButton.textContent = `Playlist: ${audioFiles.length} tracks`;
+        } else {
+            // При выборе одного файла
+            const fileName =
+                firstTrack.name.length > 20
+                    ? firstTrack.name.substring(0, 17) + '...'
+                    : firstTrack.name;
+            fileButton.textContent = fileName;
+        }
 
         // Инициализируем визуализатор (пока потухшие прожекторы) !!!
         initPixiVisualizer();
+
+        console.log('Плейлист готов к воспроизведению');
     } catch (error) {
         console.error('Ошибка загрузки файла:', error);
         fileButton.classList.remove('has-file'); // убираем стилизацию элемента input
@@ -160,6 +199,7 @@ playButton.addEventListener('click', async () => {
         await playAudio();
         // Инициализируем визуализатор (пошла динамика) !!!
         initPixiVisualizer();
+        console.log('Воспроизведение запущено');
     } catch (error) {
         alert(error.message);
     }
@@ -172,6 +212,29 @@ pauseButton.addEventListener('click', () => {
     pauseAudio();
     // Остановка визуализации
     stopPixiVisualizer();
+    console.log('Пауза (можно продолжить с этого места)');
+});
+
+// Обработчик Stop (добавляем после обработчика Pause)
+stopButton.addEventListener('click', () => {
+    // Останавливаем аудио
+    stopAudio();
+    // Останавливаем визуализацию
+    stopPixiVisualizer();
+
+    // Сбрасываем плейлист на первый трек
+    if (playlistState.getPlaylistInfo().total > 0) {
+        playlistState.goToTrack(0);
+        console.log('Плейлист сброшен на первый трек');
+    }
+
+    // Визуальная обратная связь
+    stopButton.style.opacity = '0.6';
+    setTimeout(() => {
+        stopButton.style.opacity = '1';
+    }, 200);
+
+    console.log('Полная остановка выполнена');
 });
 
 // Пауза воспроизведения при скрытии вкладки браузера (экономия ресурсов)
@@ -181,6 +244,9 @@ document.addEventListener('visibilitychange', () => {
         stopPixiVisualizer();
     }
 });
+
+// Глобальный доступ для отладки
+window.playlistState = playlistState;
 
 // Финальное сообщение об успешной загрузке приложения
 console.log('Приложение инициализировано');

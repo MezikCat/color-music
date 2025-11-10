@@ -1,4 +1,5 @@
-/* ***** Создаем основные переменные ***** */
+// audioManager.js управляет только текущим аудиофайлом, не знает о плейлистах
+
 // Главный движок для работы со звуком в Web Audio API
 let audioContext = null;
 
@@ -16,7 +17,7 @@ let analyser = null;
   audioElement → source → analyser → audioContext
 */
 
-// Отслеживаем состояние проигрывания
+// Отслеживаем состояние проигрывания (единственный источник истины для состояния воспроизведения)
 let isPlaying = false;
 
 // Текущий аудио URL
@@ -33,22 +34,26 @@ export function initAudioContext() {
     return audioContext;
 }
 
-// Загрузка аудиофайла
-export async function loadAudioFile(file) {
+/*
+    Загрузка аудиофайла
+    ОСНОВНАЯ ФУНКЦИЯ - принимает колбэк для автоперехода по трекам плейлиста
+*/
+export async function loadAudioFile(file, onTrackEnd = null) {
     // Останавливаем предыдущее воспроизведение
     if (audioElement) {
         audioElement.pause();
+        audioElement.onended = null; // Убираем старые обработчики
     }
 
     // Освобождаем аудио URL перед созданием нового
     if (currentAudioURL) {
         URL.revokeObjectURL(currentAudioURL);
-        console.log('🗑️ Освобожден предыдущий blob URL', currentAudioURL);
+        console.log('Освобожден текущий blob URL', currentAudioURL);
     }
 
     // Создаем новый URL для аудио файла
     currentAudioURL = URL.createObjectURL(file);
-    console.log('📁 Создан blob URL:', currentAudioURL);
+    console.log('Создан blob URL:', currentAudioURL);
 
     // Создаем audio элемент
     audioElement = new Audio(currentAudioURL);
@@ -63,6 +68,9 @@ export async function loadAudioFile(file) {
     analyser = audioContext.createAnalyser();
     // Устанавливаем детализацию анализатора (default)
     analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = 0.8; // Плавность анимации
+    analyser.minDecibels = -90; // Полный динамический диапазон
+    analyser.maxDecibels = -10; // Защита от клиппинга
 
     // Сборка всей звуковой цепочки [источник -> анализатор -> выход]
     source.connect(analyser);
@@ -70,6 +78,14 @@ export async function loadAudioFile(file) {
 
     // Сбрасываем статус воспроизведения
     isPlaying = false;
+
+    // Настраиваем колбэк окончания трека
+    if (onTrackEnd && typeof onTrackEnd === 'function') {
+        audioElement.onended = onTrackEnd;
+        console.log('✅ Колбэк окончания трека установлен');
+    } else {
+        console.log('ℹ️ Режим одиночного файла');
+    }
 
     console.log('Аудиофайл загружен:', file.name);
     return true;
@@ -94,7 +110,7 @@ export async function playAudio() {
     // Начинаем проигрывание аудио файла
     try {
         await audioElement.play();
-        isPlaying = true;
+        isPlaying = true; // ✅ Единственное место установки true
         console.log('Воспроизведение начато');
     } catch (error) {
         // Браузер сам скажет, если формат файла не поддерживается
@@ -116,7 +132,7 @@ export async function playAudio() {
 export function pauseAudio() {
     if (audioElement) {
         audioElement.pause();
-        isPlaying = false;
+        isPlaying = false; // ✅ Единственное место установки false
         console.log('Воспроизведение приостановлено');
     }
 }
@@ -128,7 +144,7 @@ export function getAnalyser() {
 
 // Функция для проверки статуса воспроизведения (true или false)
 export function getIsPlaying() {
-    return isPlaying;
+    return isPlaying; // ✅ Единственный источник истины
 }
 
 // Функция для получения audio элемента (пока не использовали)
@@ -136,4 +152,21 @@ export function getIsPlaying() {
 export function getAudioElement() {
     // Возвращает ссылку на HTML5 audio элемент
     return audioElement;
+}
+
+// Остановка воспроизведения
+export function stopAudio() {
+    if (audioElement) {
+        audioElement.pause();
+        audioElement.currentTime = 0; // Сбрасываем на начало трека
+        isPlaying = false;
+        console.log('Воспроизведение остановлено (сброс на начало)');
+    }
+
+    // Останавливаем аудиоконтекст для экономии ресурсов
+    if (audioContext && audioContext.state !== 'closed') {
+        audioContext.suspend().catch(() => {
+            // Игнорируем ошибки при suspend
+        });
+    }
 }
